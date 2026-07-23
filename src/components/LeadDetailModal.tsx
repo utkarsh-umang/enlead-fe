@@ -105,6 +105,104 @@ function EnrichmentHistory({ leadId }: { leadId: string }) {
   );
 }
 
+interface Appearance {
+  podcast_name?: string;
+  episode_title?: string;
+  episode_url?: string;
+  episode_published_at?: string;
+}
+
+// The podcast/episode trail for a Podscan guest — the outreach hook ("I heard
+// you on X"). Lives in the raw rows' all_appearances_json (the flattener packs
+// every episode a guest appeared on); we parse it across all of the lead's raw
+// rows, dedupe by episode, and show newest first. Returns null for any lead
+// that has no such data, so it only renders for podcast guests.
+const _MAX_SHOWN = 12;
+
+function PodcastAppearances({ leadId }: { leadId: string }) {
+  const { data: rawRows } = useLeadRawRows(leadId);
+  if (!rawRows) return null;
+
+  const seen = new Set<string>();
+  const appearances: Appearance[] = [];
+  for (const row of rawRows) {
+    const raw = row.raw_data as Record<string, unknown>;
+    let list: Appearance[] = [];
+    const json = raw['all_appearances_json'];
+    if (typeof json === 'string' && json.trim()) {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed)) list = parsed as Appearance[];
+      } catch {
+        /* not this lead's shape — ignore */
+      }
+    }
+    // Fallback to the flat headline fields if the JSON list is absent.
+    if (list.length === 0 && (raw['podcast_name'] || raw['episode_title'])) {
+      list = [
+        {
+          podcast_name: raw['podcast_name'] as string,
+          episode_title: raw['episode_title'] as string,
+          episode_url: raw['episode_url'] as string,
+          episode_published_at: raw['episode_published_at'] as string,
+        },
+      ];
+    }
+    for (const a of list) {
+      const key = a.episode_url || `${a.podcast_name}|${a.episode_title}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      appearances.push(a);
+    }
+  }
+  if (appearances.length === 0) return null;
+
+  appearances.sort((a, b) =>
+    (b.episode_published_at || '').localeCompare(a.episode_published_at || '')
+  );
+  const shown = appearances.slice(0, _MAX_SHOWN);
+
+  return (
+    <>
+      <h3 className="text-sm text-[#00D9FF] uppercase tracking-wider mb-2 mt-6">
+        Podcast appearances ({appearances.length})
+      </h3>
+      <div className="space-y-2 py-2">
+        {shown.map((a, i) => (
+          <div key={i} className="border-b border-[#00D9FF]/10 last:border-0 pb-2 last:pb-0">
+            <div className="text-xs text-white/50 mb-0.5 break-all">{a.podcast_name || '—'}</div>
+            {a.episode_url ? (
+              <a
+                href={a.episode_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[#00D9FF] hover:underline text-sm flex items-start gap-1"
+              >
+                <span className="break-all">{a.episode_title || a.episode_url}</span>
+                <ExternalLink className="size-3 shrink-0 mt-1" />
+              </a>
+            ) : (
+              <div className="text-white text-sm break-all">{a.episode_title || '—'}</div>
+            )}
+            {a.episode_published_at && (
+              <div className="text-xs text-white/40 mt-0.5">
+                {new Date(a.episode_published_at).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+        {appearances.length > _MAX_SHOWN && (
+          <div className="text-xs text-white/40">+{appearances.length - _MAX_SHOWN} more</div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function LeadDetailModal({ lead, onClose }: LeadDetailModalProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const deleteLead = useDeleteLead();
@@ -265,7 +363,17 @@ export function LeadDetailModal({ lead, onClose }: LeadDetailModalProps) {
                     </>
                   )}
 
+                  <PodcastAppearances leadId={lead.id} />
+
                   <h3 className="text-sm text-[#00D9FF] uppercase tracking-wider mb-2 mt-6">Categorization</h3>
+                  <Field
+                    label="Tag"
+                    value={
+                      lead.lead_tag
+                        ? lead.lead_tag.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+                        : null
+                    }
+                  />
                   <Field label="Country" value={lead.country} />
                   <Field label="Industry" value={lead.industry} />
                   <Field label="Niche" value={lead.niche} />
