@@ -60,6 +60,11 @@ const FULL_COLUMNS: LeadColumn[] = [
   { label: 'Last Upload', render: (l) => l.youtube_last_upload_date ?? '—' },
   { label: 'Sources', render: (l) => l.sources.join(', ') || '—' },
   {
+    label: 'Tag',
+    render: (l) =>
+      l.lead_tag ? l.lead_tag.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '—',
+  },
+  {
     label: 'Last Contacted',
     render: (l) =>
       l.last_contacted
@@ -82,6 +87,7 @@ export function MyLeadsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'' | 'present' | 'found' | 'tried' | 'untried'>('');
+  const [tagFilter, setTagFilter] = useState<'' | 'prospect' | 'public_figure' | 'host_or_regular'>('');
   const [detailLead, setDetailLead] = useState<LeadOut | null>(null);
   const [viewMode, setViewMode] = useState<'compact' | 'full'>('compact');
   const profileRef = useRef<HTMLButtonElement>(null);
@@ -111,12 +117,13 @@ export function MyLeadsPage() {
             : {};
   const { data, isLoading, isError } = useLeads(page, PAGE_SIZE, debouncedSearch, {
     source: sourceFilter || undefined,
+    leadTag: tagFilter || undefined,
     ...statusParams,
   });
   const leads = data?.items ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const activeFilterCount = (sourceFilter ? 1 : 0) + (statusFilter ? 1 : 0);
+  const activeFilterCount = (sourceFilter ? 1 : 0) + (statusFilter ? 1 : 0) + (tagFilter ? 1 : 0);
   const navigate = useNavigate();
 
   // "Select all matching filter" spans every page, not just what's loaded —
@@ -134,7 +141,7 @@ export function MyLeadsPage() {
     setSelectedLeads([]);
     setSelectAllMatching(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, sourceFilter, statusFilter]);
+  }, [debouncedSearch, sourceFilter, statusFilter, tagFilter]);
 
   const toggleLead = (id: string) => {
     if (selectAllMatching) {
@@ -175,6 +182,7 @@ export function MyLeadsPage() {
     ? {
         search: debouncedSearch || null,
         source: sourceFilter || null,
+        lead_tag: tagFilter || null,
         // export cares about the email axis only; the finder-tried axis
         // never changes what's exportable (no-email leads are skipped).
         has_email:
@@ -425,11 +433,28 @@ export function MyLeadsPage() {
                           <option value="untried">No Email Yet (not tried)</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-xs text-white/60 uppercase tracking-wider mb-2">Tag</label>
+                        <select
+                          value={tagFilter}
+                          onChange={(e) => {
+                            setTagFilter(e.target.value as '' | 'prospect' | 'public_figure' | 'host_or_regular');
+                            setPage(1);
+                          }}
+                          className="w-full px-3 py-2 bg-[#0A1628]/60 border border-[#00D9FF]/30 rounded-lg text-white text-sm focus:outline-none focus:border-[#00D9FF]"
+                        >
+                          <option value="">All tags</option>
+                          <option value="prospect">Prospect</option>
+                          <option value="public_figure">Public Figure</option>
+                          <option value="host_or_regular">Host / Regular</option>
+                        </select>
+                      </div>
                       {activeFilterCount > 0 && (
                         <button
                           onClick={() => {
                             setSourceFilter('');
                             setStatusFilter('');
+                            setTagFilter('');
                             setPage(1);
                           }}
                           className="text-xs text-[#00D9FF] hover:underline"

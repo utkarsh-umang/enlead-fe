@@ -13,5 +13,6 @@ export type ExportSelection = {
     source?: (string | null);
     has_email?: (boolean | null);
     email_from_finder?: (boolean | null);
+    lead_tag?: (string | null);
 };
 
