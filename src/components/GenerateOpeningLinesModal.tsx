@@ -178,10 +178,10 @@ export function GenerateOpeningLinesModal({
                           {preview.samples.map((s) => (
                             <div
                               key={s.lead_id}
-                              className="p-3 bg-[#0A1628]/60 border border-[#00D9FF]/15 rounded-lg"
+                              className="p-3 bg-[#0A1628]/60 border border-[#00D9FF]/20 rounded-lg"
                             >
-                              <div className="text-xs text-white/40 truncate">{s.display_name}</div>
-                              <div className="text-sm text-white/85 mt-0.5">{s.email_to_send}</div>
+                              <div className="text-xs text-white/50 truncate">{s.display_name}</div>
+                              <div className="text-sm text-white/80 mt-0.5">{s.email_to_send}</div>
                             </div>
                           ))}
                         </div>
