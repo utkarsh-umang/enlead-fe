@@ -9,6 +9,8 @@ export type ExportCreateIn = {
     has_email?: (boolean | null);
     email_from_finder?: (boolean | null);
     lead_tag?: (string | null);
+    classified_industry?: (string | null);
+    icp_accepted?: (boolean | null);
     year: number;
     month: number;
     include_already_exported?: boolean;

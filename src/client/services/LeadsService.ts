@@ -31,6 +31,8 @@ export class LeadsService {
      * @param finderTried
      * @param emailFromFinder
      * @param leadTag
+     * @param classifiedIndustry
+     * @param icpAccepted
      * @returns LeadPage Successful Response
      * @throws ApiError
      */
@@ -43,6 +45,8 @@ export class LeadsService {
         finderTried?: (boolean | null),
         emailFromFinder?: (boolean | null),
         leadTag?: (string | null),
+        classifiedIndustry?: (string | null),
+        icpAccepted?: (boolean | null),
     ): CancelablePromise<LeadPage> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -56,6 +60,8 @@ export class LeadsService {
                 'finder_tried': finderTried,
                 'email_from_finder': emailFromFinder,
                 'lead_tag': leadTag,
+                'classified_industry': classifiedIndustry,
+                'icp_accepted': icpAccepted,
             },
             errors: {
                 422: `Validation Error`,

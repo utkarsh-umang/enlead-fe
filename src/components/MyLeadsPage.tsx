@@ -16,6 +16,30 @@ import type { ExportSelection, LeadOut } from '@/client';
 
 const PAGE_SIZE = 25;
 
+// Canonical industry buckets from the ICP classifier (services/classifiers).
+// "Paid Advertising Agency" is the ICP-accept segment (icp_confidence >= 60).
+// The classifier may also emit off-taxonomy labels; those are filterable by
+// URL but aren't listed here.
+const ICP_TAXONOMY = [
+  'Paid Advertising Agency',
+  'SEO Agency',
+  'Full-Service / Digital Marketing Agency',
+  'Social / Content / PR Agency',
+  'Branding / Creative / Design',
+  'Web Design / Development',
+  'Software / SaaS / Tech Platform',
+  'E-commerce / Retail Brand',
+  'Real Estate',
+  'Recruitment / Staffing',
+  'Consulting / Professional Services',
+  'Media / Publisher',
+  'Education / Coaching',
+  'Healthcare / Pharma',
+  'Hospitality / Travel / Events',
+  'Nonprofit / Government',
+  'Other / Unclear',
+];
+
 // Everything master_leads actually stores, for the "All Columns" view —
 // most of this doesn't fit in the compact table, but it's real data that
 // shouldn't be invisible just because there's no room for it by default.
@@ -90,6 +114,7 @@ export function MyLeadsPage() {
     '' | 'has_email' | 'present' | 'found' | 'tried' | 'untried'
   >('');
   const [tagFilter, setTagFilter] = useState<'' | 'prospect' | 'public_figure' | 'host_or_regular'>('');
+  const [industryFilter, setIndustryFilter] = useState('');
   const [detailLead, setDetailLead] = useState<LeadOut | null>(null);
   const [viewMode, setViewMode] = useState<'compact' | 'full'>('compact');
   const profileRef = useRef<HTMLButtonElement>(null);
@@ -122,12 +147,14 @@ export function MyLeadsPage() {
   const { data, isLoading, isError } = useLeads(page, PAGE_SIZE, debouncedSearch, {
     source: sourceFilter || undefined,
     leadTag: tagFilter || undefined,
+    classifiedIndustry: industryFilter || undefined,
     ...statusParams,
   });
   const leads = data?.items ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const activeFilterCount = (sourceFilter ? 1 : 0) + (statusFilter ? 1 : 0) + (tagFilter ? 1 : 0);
+  const activeFilterCount =
+    (sourceFilter ? 1 : 0) + (statusFilter ? 1 : 0) + (tagFilter ? 1 : 0) + (industryFilter ? 1 : 0);
   const navigate = useNavigate();
 
   // "Select all matching filter" spans every page, not just what's loaded —
@@ -145,7 +172,7 @@ export function MyLeadsPage() {
     setSelectedLeads([]);
     setSelectAllMatching(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, sourceFilter, statusFilter, tagFilter]);
+  }, [debouncedSearch, sourceFilter, statusFilter, tagFilter, industryFilter]);
 
   const toggleLead = (id: string) => {
     if (selectAllMatching) {
@@ -204,6 +231,7 @@ export function MyLeadsPage() {
         search: debouncedSearch || null,
         source: sourceFilter || null,
         lead_tag: tagFilter || null,
+        classified_industry: industryFilter || null,
         ...emailAxis,
       }
     : { lead_ids: selectedLeads };
@@ -472,12 +500,33 @@ export function MyLeadsPage() {
                           <option value="host_or_regular">Host / Regular</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-xs text-white/60 uppercase tracking-wider mb-2">
+                          Industry (ICP)
+                        </label>
+                        <select
+                          value={industryFilter}
+                          onChange={(e) => {
+                            setIndustryFilter(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full px-3 py-2 bg-[#0A1628]/60 border border-[#00D9FF]/30 rounded-lg text-white text-sm focus:outline-none focus:border-[#00D9FF]"
+                        >
+                          <option value="">All industries</option>
+                          {ICP_TAXONOMY.map((industry) => (
+                            <option key={industry} value={industry}>
+                              {industry}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       {activeFilterCount > 0 && (
                         <button
                           onClick={() => {
                             setSourceFilter('');
                             setStatusFilter('');
                             setTagFilter('');
+                            setIndustryFilter('');
                             setPage(1);
                           }}
                           className="text-xs text-[#00D9FF] hover:underline"

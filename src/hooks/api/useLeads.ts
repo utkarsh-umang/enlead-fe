@@ -9,6 +9,10 @@ export interface LeadFilters {
   emailFromFinder?: boolean;
   /** prospect | public_figure | host_or_regular (podscan lead-quality tag). */
   leadTag?: string;
+  /** website-classified industry bucket (ICP classifier). */
+  classifiedIndustry?: string;
+  /** true = paid-ads-agency segment (icp_confidence >= 60). */
+  icpAccepted?: boolean;
 }
 
 export function useLeads(page: number, pageSize: number, search: string, filters: LeadFilters = {}) {
@@ -23,6 +27,8 @@ export function useLeads(page: number, pageSize: number, search: string, filters
       filters.finderTried,
       filters.emailFromFinder,
       filters.leadTag,
+      filters.classifiedIndustry,
+      filters.icpAccepted,
     ],
     queryFn: () =>
       LeadsService.listLeads(
@@ -33,7 +39,9 @@ export function useLeads(page: number, pageSize: number, search: string, filters
         filters.hasEmail,
         filters.finderTried,
         filters.emailFromFinder,
-        filters.leadTag
+        filters.leadTag,
+        filters.classifiedIndustry,
+        filters.icpAccepted
       ),
   });
 }

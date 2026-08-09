@@ -14,5 +14,7 @@ export type ExportSelection = {
     has_email?: (boolean | null);
     email_from_finder?: (boolean | null);
     lead_tag?: (string | null);
+    classified_industry?: (string | null);
+    icp_accepted?: (boolean | null);
 };
 
