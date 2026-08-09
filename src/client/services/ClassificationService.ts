@@ -6,6 +6,9 @@ import type { ClassificationResultsIn } from '../models/ClassificationResultsIn'
 import type { ClassificationResultsOut } from '../models/ClassificationResultsOut';
 import type { ClassificationStatus } from '../models/ClassificationStatus';
 import type { PendingLead } from '../models/PendingLead';
+import type { RequestClassificationIn } from '../models/RequestClassificationIn';
+import type { RequestClassificationOut } from '../models/RequestClassificationOut';
+import type { RequestedBatch } from '../models/RequestedBatch';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -73,6 +76,58 @@ export class ClassificationService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * Request Classification
+     * Mark a list for classification — the worker will pick it up.
+     * @param requestBody
+     * @returns RequestClassificationOut Successful Response
+     * @throws ApiError
+     */
+    public static requestClassification(
+        requestBody: RequestClassificationIn,
+    ): CancelablePromise<RequestClassificationOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/classification/request',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Stop Classification
+     * Clear the classify request — the worker stops picking up this list.
+     * @param requestBody
+     * @returns RequestClassificationOut Successful Response
+     * @throws ApiError
+     */
+    public static stopClassification(
+        requestBody: RequestClassificationIn,
+    ): CancelablePromise<RequestClassificationOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/classification/stop',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Requested Classifications
+     * Lists the worker should classify: requested AND still have pending leads.
+     * @returns RequestedBatch Successful Response
+     * @throws ApiError
+     */
+    public static requestedClassifications(): CancelablePromise<Array<RequestedBatch>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classification/requested',
         });
     }
 }

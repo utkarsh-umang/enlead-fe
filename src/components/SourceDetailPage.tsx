@@ -1,10 +1,11 @@
 import { motion } from 'motion/react';
-import { ArrowLeft, Upload, Layers, Mail, MailX, Menu, Home, MessageSquareText } from 'lucide-react';
+import { ArrowLeft, Upload, Layers, Mail, MailX, Menu, Home, MessageSquareText, Target } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { BatchDetailModal } from './BatchDetailModal';
 import { GenerateOpeningLinesModal } from './GenerateOpeningLinesModal';
+import { ClassifyModal } from './ClassifyModal';
 import { useSidebar } from '../context/SidebarContext';
 import { useSourceDetail } from '../hooks/api/useSourceDetail';
 import { useReleaseEnrichment } from '../hooks/api/useReleaseEnrichment';
@@ -54,6 +55,7 @@ export function SourceDetailPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [detailBatchId, setDetailBatchId] = useState<string | null>(null);
   const [genBatch, setGenBatch] = useState<{ id: string; filename: string } | null>(null);
+  const [classifyBatch, setClassifyBatch] = useState<{ id: string; filename: string } | null>(null);
 
   const { data, isLoading, isError } = useSourceDetail(source ?? '');
   const release = useReleaseEnrichment(source ?? '');
@@ -201,6 +203,9 @@ export function SourceDetailPage() {
                           Status
                         </th>
                         <th className="text-right p-3 sm:p-4 text-xs uppercase tracking-wider text-white/60">
+                          Classify
+                        </th>
+                        <th className="text-right p-3 sm:p-4 text-xs uppercase tracking-wider text-white/60">
                           Openers
                         </th>
                       </tr>
@@ -239,6 +244,21 @@ export function SourceDetailPage() {
                               whileTap={{ scale: 0.95 }}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setClassifyBatch({ id: batch.id, filename: batch.filename });
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/30 hover:bg-[#00D9FF]/20 transition-colors"
+                              title="Classify this list's companies by industry (ICP)"
+                            >
+                              <Target className="size-3.5" />
+                              Classify
+                            </motion.button>
+                          </td>
+                          <td className="p-3 sm:p-4 text-right">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setGenBatch({ id: batch.id, filename: batch.filename });
                               }}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/30 hover:bg-[#00D9FF]/20 transition-colors"
@@ -267,6 +287,14 @@ export function SourceDetailPage() {
         source={source ?? ''}
         batchId={genBatch?.id ?? null}
         filename={genBatch?.filename ?? null}
+      />
+
+      <ClassifyModal
+        isOpen={classifyBatch !== null}
+        onClose={() => setClassifyBatch(null)}
+        source={source ?? ''}
+        batchId={classifyBatch?.id ?? null}
+        filename={classifyBatch?.filename ?? null}
       />
 
       <style>{`
