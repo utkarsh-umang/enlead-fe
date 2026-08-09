@@ -86,7 +86,9 @@ export function MyLeadsPage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'' | 'present' | 'found' | 'tried' | 'untried'>('');
+  const [statusFilter, setStatusFilter] = useState<
+    '' | 'has_email' | 'present' | 'found' | 'tried' | 'untried'
+  >('');
   const [tagFilter, setTagFilter] = useState<'' | 'prospect' | 'public_figure' | 'host_or_regular'>('');
   const [detailLead, setDetailLead] = useState<LeadOut | null>(null);
   const [viewMode, setViewMode] = useState<'compact' | 'full'>('compact');
@@ -106,15 +108,17 @@ export function MyLeadsPage() {
   // present-vs-absent, email_from_finder splits who earned it, and
   // finder_tried splits the no-email side into attempted vs queued.
   const statusParams =
-    statusFilter === 'present'
-      ? { hasEmail: true, emailFromFinder: false }
-      : statusFilter === 'found'
-        ? { hasEmail: true, emailFromFinder: true }
-        : statusFilter === 'tried'
-          ? { hasEmail: false, finderTried: true }
-          : statusFilter === 'untried'
-            ? { hasEmail: false, finderTried: false }
-            : {};
+    statusFilter === 'has_email'
+      ? { hasEmail: true } // either source — present + found combined
+      : statusFilter === 'present'
+        ? { hasEmail: true, emailFromFinder: false }
+        : statusFilter === 'found'
+          ? { hasEmail: true, emailFromFinder: true }
+          : statusFilter === 'tried'
+            ? { hasEmail: false, finderTried: true }
+            : statusFilter === 'untried'
+              ? { hasEmail: false, finderTried: false }
+              : {};
   const { data, isLoading, isError } = useLeads(page, PAGE_SIZE, debouncedSearch, {
     source: sourceFilter || undefined,
     leadTag: tagFilter || undefined,
@@ -178,19 +182,29 @@ export function MyLeadsPage() {
   // What the export API receives: either the explicit ids, or (in
   // select-all-matching mode) the same filter params the table is showing —
   // so "export what I selected" is exactly "export what I see."
+  // Mirror the list view's email axis exactly, so "select all matching" exports
+  // the same set the user is looking at. has_email splits present-vs-absent;
+  // email_from_finder splits provided ('present') vs finder-earned ('found').
+  // 'has_email' wants BOTH sources, so it leaves email_from_finder null.
+  // (The finder-tried axis never changes what's exportable — no-email leads are
+  // skipped either way — so it's not carried here.)
+  const emailAxis: Pick<ExportSelection, 'has_email' | 'email_from_finder'> =
+    statusFilter === 'present'
+      ? { has_email: true, email_from_finder: false }
+      : statusFilter === 'found'
+        ? { has_email: true, email_from_finder: true }
+        : statusFilter === 'has_email'
+          ? { has_email: true, email_from_finder: null }
+          : statusFilter === ''
+            ? { has_email: null, email_from_finder: null }
+            : { has_email: false, email_from_finder: null }; // tried / untried
+
   const exportSelection: ExportSelection = selectAllMatching
     ? {
         search: debouncedSearch || null,
         source: sourceFilter || null,
         lead_tag: tagFilter || null,
-        // export cares about the email axis only; the finder-tried axis
-        // never changes what's exportable (no-email leads are skipped).
-        has_email:
-          statusFilter === 'found' || statusFilter === 'present'
-            ? true
-            : statusFilter === ''
-              ? null
-              : false,
+        ...emailAxis,
       }
     : { lead_ids: selectedLeads };
 
@@ -421,12 +435,21 @@ export function MyLeadsPage() {
                         <select
                           value={statusFilter}
                           onChange={(e) => {
-                            setStatusFilter(e.target.value as '' | 'present' | 'found' | 'tried' | 'untried');
+                            setStatusFilter(
+                              e.target.value as
+                                | ''
+                                | 'has_email'
+                                | 'present'
+                                | 'found'
+                                | 'tried'
+                                | 'untried'
+                            );
                             setPage(1);
                           }}
                           className="w-full px-3 py-2 bg-[#0A1628]/60 border border-[#00D9FF]/30 rounded-lg text-white text-sm focus:outline-none focus:border-[#00D9FF]"
                         >
                           <option value="">All statuses</option>
+                          <option value="has_email">Has Email (present + found)</option>
                           <option value="present">Email Present (from the list)</option>
                           <option value="found">Email Found (by the finder)</option>
                           <option value="tried">Tried, Not Found</option>
