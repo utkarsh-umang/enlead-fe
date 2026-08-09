@@ -48,8 +48,11 @@ export function ClassifyModal({ isOpen, onClose, batchId, source, filename }: Cl
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-full max-w-lg backdrop-blur-xl bg-[#0A1628]/95 border border-[#00D9FF]/30 rounded-2xl shadow-2xl shadow-[#00D9FF]/20">
-              <div className="p-6 border-b border-[#00D9FF]/20 flex items-center justify-between">
+            <div
+              className="w-full max-w-lg backdrop-blur-xl bg-[#0A1628]/95 border border-[#00D9FF]/30 rounded-2xl shadow-2xl shadow-[#00D9FF]/20 flex flex-col"
+              style={{ maxHeight: '85vh' }}
+            >
+              <div className="p-6 border-b border-[#00D9FF]/20 flex items-center justify-between shrink-0">
                 <div>
                   <h2 className="text-xl text-white flex items-center gap-2">
                     <Target className="size-5 text-[#00D9FF]" />
@@ -71,12 +74,12 @@ export function ClassifyModal({ isOpen, onClose, batchId, source, filename }: Cl
                 </motion.button>
               </div>
 
-              <div className="p-6 space-y-5">
-                {isLoading || !status ? (
-                  <div className="text-sm text-white/60">Loading…</div>
-                ) : (
-                  <>
-                    {/* Progress */}
+              {isLoading || !status ? (
+                <div className="p-6 text-sm text-white/60">Loading…</div>
+              ) : (
+                <>
+                  {/* Progress — pinned */}
+                  <div className="p-6 pb-3 space-y-2 shrink-0">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-white/70">
@@ -109,37 +112,38 @@ export function ClassifyModal({ isOpen, onClose, batchId, source, filename }: Cl
                         paid-ads agencies found
                       </div>
                     </div>
+                  </div>
 
-                    {/* Industry breakdown */}
-                    {industries.length > 0 && (
-                      <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                        <div className="text-xs text-white/40 uppercase tracking-wider">By industry</div>
-                        {industries.map(([name, count]) => (
-                          <div
-                            key={name}
-                            className="flex items-center justify-between text-sm py-1 px-2 rounded-lg bg-[#0A1628]/50"
-                          >
-                            <span
-                              className={
-                                name === 'Paid Advertising Agency'
-                                  ? 'text-[#00D9FF]'
-                                  : 'text-white/70'
-                              }
-                            >
-                              {name}
-                            </span>
-                            <span className="text-white/50">{count.toLocaleString()}</span>
-                          </div>
-                        ))}
+                  {/* Industry breakdown — the only scrolling region */}
+                  <div
+                    className="px-6 space-y-1.5"
+                    style={{ overflowY: 'auto', minHeight: 0, flex: '1 1 auto' }}
+                  >
+                    <div className="text-xs text-white/40 uppercase tracking-wider">
+                      By industry ({industries.length})
+                    </div>
+                    {industries.map(([name, count]) => (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between text-sm py-1 px-2 rounded-lg bg-[#0A1628]/50"
+                      >
+                        <span className={name === 'Paid Advertising Agency' ? 'text-[#00D9FF]' : 'text-white/70'}>
+                          {name}
+                        </span>
+                        <span className="text-white/50">{count.toLocaleString()}</span>
                       </div>
+                    ))}
+                    {industries.length === 0 && (
+                      <div className="text-sm text-white/40 py-2">No results yet…</div>
                     )}
+                  </div>
 
+                  {/* Controls — pinned footer */}
+                  <div className="p-6 pt-3 space-y-3 shrink-0 border-t border-[#00D9FF]/15">
                     {(request.isError || stop.isError) && (
                       <p className="text-sm text-red-400">Action failed — is the backend reachable?</p>
                     )}
-
-                    {/* Controls */}
-                    <div className="flex gap-3 pt-1">
+                    <div className="flex gap-3">
                       {running ? (
                         <motion.button
                           whileHover={{ scale: 1.02 }}
@@ -177,9 +181,9 @@ export function ClassifyModal({ isOpen, onClose, batchId, source, filename }: Cl
                     <p className="text-xs text-white/40">
                       Runs in the background — you can close this and come back; progress keeps going.
                     </p>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </>
