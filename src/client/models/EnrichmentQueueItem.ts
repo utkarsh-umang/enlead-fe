@@ -19,5 +19,12 @@ export type EnrichmentQueueItem = {
     social_linkedin: (string | null);
     niche: (string | null);
     country: (string | null);
+    first_name?: (string | null);
+    last_name?: (string | null);
+    company_name?: (string | null);
+    job_title?: (string | null);
+    industry?: (string | null);
+    lead_tag?: (string | null);
+    clutch_profile_url?: (string | null);
 };
 

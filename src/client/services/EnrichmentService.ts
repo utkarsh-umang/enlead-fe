@@ -7,6 +7,7 @@ import type { EnrichmentResultIn } from '../models/EnrichmentResultIn';
 import type { EnrichmentStatusOut } from '../models/EnrichmentStatusOut';
 import type { HeartbeatIn } from '../models/HeartbeatIn';
 import type { PauseIn } from '../models/PauseIn';
+import type { RequeueIn } from '../models/RequeueIn';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -122,6 +123,29 @@ export class EnrichmentService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/enrichment/resume',
+        });
+    }
+    /**
+     * Requeue Leads
+     * Re-queue leads for another attempt WITHOUT deleting the ledger. Marks
+     * their current attempts at cost_mode superseded (rows stay — the append-only
+     * ledger and all spend history are preserved) and clears their finder-earned
+     * email so the queue serves them again. Use this instead of deleting rows.
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static requeueLeads(
+        requestBody: RequeueIn,
+    ): CancelablePromise<Record<string, any>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/enrichment/requeue',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**

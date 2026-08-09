@@ -11,6 +11,12 @@ export type EnrichmentResultIn = {
     confidence?: (number | null);
     provider?: (string | null);
     cost_incurred?: (number | null);
+    evidence?: (Record<string, any> | null);
+    person_first_name?: (string | null);
+    person_last_name?: (string | null);
+    person_job_title?: (string | null);
+    person_seniority?: (string | null);
+    email_status?: (string | null);
 };
 export namespace EnrichmentResultIn {
     export enum cost_mode {
