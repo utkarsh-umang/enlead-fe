@@ -11,5 +11,6 @@ export type ClassificationStatus = {
     pending: number;
     icp_accepted: number;
     by_industry: Record<string, number>;
+    paused?: boolean;
 };
 

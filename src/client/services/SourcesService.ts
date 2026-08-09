@@ -13,17 +13,22 @@ export class SourcesService {
      * Lift the import-time hold for this source's leads — they join the
      * email finder queue immediately (the worker is woken, not polled).
      * @param source
+     * @param limit Release only a bounded tranche of this many leads (a budgeted run). Picks the oldest never-attempted held leads first, so the released count equals what the worker will actually process. Omit to release the whole source.
      * @returns ReleaseResult Successful Response
      * @throws ApiError
      */
     public static releaseEnrichmentHold(
         source: string,
+        limit?: (number | null),
     ): CancelablePromise<ReleaseResult> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/sources/{source}/release-enrichment',
             path: {
                 'source': source,
+            },
+            query: {
+                'limit': limit,
             },
             errors: {
                 422: `Validation Error`,

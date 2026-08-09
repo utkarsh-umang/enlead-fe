@@ -50,6 +50,8 @@ export type { SourceCount } from './models/SourceCount';
 export type { SourceDetail } from './models/SourceDetail';
 export type { SourceFileOut } from './models/SourceFileOut';
 export type { ValidationError } from './models/ValidationError';
+export type { WorkerPauseIn } from './models/WorkerPauseIn';
+export type { WorkerPauseState } from './models/WorkerPauseState';
 
 export { BatchesService } from './services/BatchesService';
 export { ClassificationService } from './services/ClassificationService';
@@ -60,3 +62,4 @@ export { LeadsService } from './services/LeadsService';
 export { MappingFunctionsService } from './services/MappingFunctionsService';
 export { MessagesService } from './services/MessagesService';
 export { SourcesService } from './services/SourcesService';
+export { SystemService } from './services/SystemService';

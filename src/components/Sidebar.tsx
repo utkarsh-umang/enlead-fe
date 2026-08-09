@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Users, Braces, Send, ChevronLeft, ChevronRight, LogOut, UserPlus, User as UserIcon, Home } from 'lucide-react';
+import { LayoutDashboard, Users, Braces, Send, ChevronLeft, ChevronRight, LogOut, UserPlus, User as UserIcon, Home, Pause, Play, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { useWorkerPauseState, usePauseWorkers, useResumeWorkers } from '@/hooks/api/useWorkerPause';
 import profileImage from 'figma:asset/3a29a51f6305397b330790f22be462da5a70d304.png';
 import logoImage from 'figma:asset/80f1fbd8b5de75c83a12cb2ec032855928774201.png';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -163,6 +164,11 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileMenu }: Sidebar
         )}
       </nav>
 
+      {/* Worker pause — the "closing the laptop" switch, reachable on every page */}
+      <div className="px-3 pb-2">
+        <WorkerPauseControl isCollapsed={isCollapsed} />
+      </div>
+
       {/* Profile Section */}
       <div 
         className="p-6 border-t border-[#00D9FF]/20"
@@ -241,5 +247,63 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileMenu }: Sidebar
         </AnimatePresence>
       </div>
     </motion.div>
+  );
+}
+
+// Single switch that idles BOTH background workers (email finder + ICP
+// classifier). Meant to be pressed before closing the laptop, so no crawl
+// fires against a sleeping machine and quietly fails. Colours are inline
+// (not Tailwind opacity utilities) because novel amber steps aren't in the
+// generated CSS in this app.
+function WorkerPauseControl({ isCollapsed }: { isCollapsed: boolean }) {
+  const { data } = useWorkerPauseState();
+  const pause = usePauseWorkers();
+  const resume = useResumeWorkers();
+  const paused = !!data?.paused;
+  const pending = pause.isPending || resume.isPending;
+  const dot = paused ? '#f59e0b' : '#22c55e';
+
+  const onClick = () => {
+    if (paused) resume.mutate();
+    else pause.mutate('Paused from sidebar (laptop sleep)');
+  };
+
+  return (
+    <motion.button
+      onClick={onClick}
+      disabled={pending}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      title={paused ? 'Workers paused — click to resume' : 'Pause both workers (before closing the laptop)'}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-300 disabled:opacity-50 ${
+        isCollapsed ? 'justify-center' : ''
+      }`}
+      style={{
+        borderColor: paused ? 'rgba(245,158,11,0.4)' : 'rgba(0,217,255,0.25)',
+        backgroundColor: paused ? 'rgba(245,158,11,0.12)' : 'transparent',
+      }}
+    >
+      {pending ? (
+        <Loader2 className="size-5 animate-spin" style={{ color: paused ? '#f59e0b' : '#00D9FF' }} />
+      ) : paused ? (
+        <Play className="size-5" style={{ color: '#f59e0b' }} />
+      ) : (
+        <Pause className="size-5 text-white/70" />
+      )}
+      {!isCollapsed && (
+        <div className="flex-1 text-left">
+          <div className="text-sm" style={{ color: paused ? '#f59e0b' : 'rgba(255,255,255,0.85)' }}>
+            {paused ? 'Resume workers' : 'Pause workers'}
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-white/50">
+            <span
+              className="inline-block rounded-full"
+              style={{ width: 6, height: 6, backgroundColor: dot }}
+            />
+            {paused ? 'Finder + classifier idle' : 'Finder + classifier running'}
+          </div>
+        </div>
+      )}
+    </motion.button>
   );
 }

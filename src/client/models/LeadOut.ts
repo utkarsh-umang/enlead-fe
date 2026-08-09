@@ -26,6 +26,8 @@ export type LeadOut = {
     phone: (string | null);
     company_name: (string | null);
     company_linkedin: (string | null);
+    google_place_id: (string | null);
+    google_maps_url: (string | null);
     lead_tag: (string | null);
     youtube_channel_name: (string | null);
     youtube_channel_id: (string | null);
