@@ -24,8 +24,9 @@ export class MessagesService {
     }
     /**
      * Preview Messages
-     * Dry run: how many leads the method can write, and a few real outputs.
-     * Writes nothing.
+     * Dry run: a few real outputs (and, for deterministic methods, the exact
+     * count the method can write). Writes nothing. For llm methods the preview is
+     * sample-based — running the whole list just to count would spend real calls.
      * @param requestBody
      * @returns MessagePreviewOut Successful Response
      * @throws ApiError
@@ -46,8 +47,8 @@ export class MessagesService {
     /**
      * Generate Messages
      * Write `email_to_send` for every lead in the list the method can produce a
-     * line for. Latest run wins (overwrite); leads the method skips are left as-is,
-     * so a re-run with a narrower method never clobbers a prior good line.
+     * line for. Latest run wins (overwrite); leads the method skips are left as-is.
+     * `limit` bounds the run — important for the slow, rate-limited llm methods.
      * @param requestBody
      * @returns GenerateMessagesResult Successful Response
      * @throws ApiError

@@ -29,6 +29,7 @@ export type { GenerateMessagesIn } from './models/GenerateMessagesIn';
 export type { GenerateMessagesResult } from './models/GenerateMessagesResult';
 export type { HealthResponse } from './models/HealthResponse';
 export { HeartbeatIn } from './models/HeartbeatIn';
+export type { HoldResult } from './models/HoldResult';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { LeadOut } from './models/LeadOut';
 export type { LeadPage } from './models/LeadPage';

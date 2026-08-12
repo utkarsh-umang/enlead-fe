@@ -11,5 +11,7 @@ export type MethodOut = {
     description: string;
     kind: string;
     required_fields: Array<string>;
+    is_async?: boolean;
+    configured?: boolean;
 };
 

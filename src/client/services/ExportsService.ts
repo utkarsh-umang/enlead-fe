@@ -43,6 +43,29 @@ export class ExportsService {
         });
     }
     /**
+     * Delete Export
+     * Remove an export event created in error / never actually sent. Drops its
+     * membership rows too, so its leads stop counting as already-contacted and
+     * become exportable again. Does not touch the leads themselves.
+     * @param exportId
+     * @returns void
+     * @throws ApiError
+     */
+    public static deleteExport(
+        exportId: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/exports/{export_id}',
+            path: {
+                'export_id': exportId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Get Export Leads
      * The member leads of one export event. Paginated — a
      * select-all-matching export can hold thousands. Leads deleted since the

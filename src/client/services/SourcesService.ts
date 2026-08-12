@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { HoldResult } from '../models/HoldResult';
 import type { ReleaseResult } from '../models/ReleaseResult';
 import type { SourceDetail } from '../models/SourceDetail';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -29,6 +30,30 @@ export class SourcesService {
             },
             query: {
                 'limit': limit,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Hold Enrichment
+     * Re-hold this source's not-yet-found leads — pull them out of the finder
+     * queue so no more credits are spent, leaving them parked for a later
+     * Release. The counterpart to release-enrichment; only leads still without an
+     * email are affected (found ones are done).
+     * @param source
+     * @returns HoldResult Successful Response
+     * @throws ApiError
+     */
+    public static holdEnrichment(
+        source: string,
+    ): CancelablePromise<HoldResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/sources/{source}/hold-enrichment',
+            path: {
+                'source': source,
             },
             errors: {
                 422: `Validation Error`,
